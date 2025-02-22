@@ -5,6 +5,11 @@ export class LMStudioAPI {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl.trim().replace(/\/$/, "");
+
+    // if baseUrl is http, change to https
+    if (this.baseUrl.startsWith("http://")) {
+      this.baseUrl = this.baseUrl.replace("http://", "https://");
+    }
   }
 
   async testConnection() {
