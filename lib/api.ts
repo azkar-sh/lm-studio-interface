@@ -2,13 +2,36 @@ import axios from "axios";
 
 export class LMStudioAPI {
   private baseUrl: string;
+  private isLocalHost: boolean;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl.trim().replace(/\/$/, "");
 
-    // if baseUrl is http, change to https
-    if (this.baseUrl.startsWith("http://")) {
+    // Check if it's a localhost or local IP address
+    this.isLocalHost = this.checkIfLocal(this.baseUrl);
+
+    // Only force HTTPS for non-local environments
+    if (!this.isLocalHost && this.baseUrl.startsWith("http://")) {
       this.baseUrl = this.baseUrl.replace("http://", "https://");
+    }
+  }
+
+  private checkIfLocal(url: string): boolean {
+    try {
+      const urlObj = new URL(url);
+      const hostname = urlObj.hostname;
+
+      return (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.startsWith("192.168.") ||
+        hostname.startsWith("10.") ||
+        hostname.startsWith("172.16.") ||
+        hostname.endsWith(".local")
+      );
+    } catch (error) {
+      console.error("Invalid URL:", error);
+      return false;
     }
   }
 
