@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LMStudioAPI } from '@/lib/api';
-import { LMStudioModel } from '@/lib/types';
-import { PlusIcon, XIcon } from 'lucide-react';
-import { toast } from 'sonner';
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LMStudioAPI } from "@/lib/api";
+import { LMStudioModel } from "@/lib/types";
+import { PlusIcon, XIcon } from "lucide-react";
+import { toast } from "sonner";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -17,7 +23,13 @@ interface SidebarProps {
   onModelSelect: (model: string) => void;
 }
 
-export function Sidebar({ isOpen, onClose, api, selectedModel, onModelSelect }: SidebarProps) {
+export function Sidebar({
+  isOpen,
+  onClose,
+  api,
+  selectedModel,
+  onModelSelect,
+}: SidebarProps) {
   const [models, setModels] = useState<LMStudioModel[]>([]);
 
   useEffect(() => {
@@ -29,51 +41,72 @@ export function Sidebar({ isOpen, onClose, api, selectedModel, onModelSelect }: 
   const loadModels = async () => {
     try {
       const response = await api!.getModels();
-      setModels(response.data.map((model: any) => ({
-        id: model.id,
-        name: model.id.split('/').pop(),
-      })));
+      setModels(
+        response.data.map((model: any) => ({
+          id: model.id,
+          name: model.id.split("/").pop(),
+        }))
+      );
     } catch (error) {
-      toast.error('Failed to load models');
+      toast.error("Failed to load models");
     }
   };
 
   return (
-    <div
-      className={`fixed inset-y-0 left-0 w-64 bg-card border-r transform transition-transform duration-200 ease-in-out ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      } md:relative md:translate-x-0`}
-    >
-      <div className="flex items-center justify-between p-4 border-b">
-        <h2 className="text-lg font-semibold">LM Studio Chat</h2>
-        <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden">
-          <XIcon className="h-5 w-5" />
-        </Button>
+    <>
+      {/* Overlay for mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 md:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      <div
+        className={`fixed inset-y-0 left-0 w-64 bg-card border-r transform transition-transform duration-200 ease-in-out z-40 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } md:relative md:translate-x-0 md:z-0`}
+      >
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold">LM Studio Chat</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="md:hidden"
+          >
+            <XIcon className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <div className="p-4">
+          <Select value={selectedModel} onValueChange={onModelSelect}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a model" />
+            </SelectTrigger>
+            <SelectContent
+              position="popper"
+              className="w-[calc(100%-2rem)] z-50"
+              sideOffset={0}
+            >
+              {models.map((model) => (
+                <SelectItem key={model.id} value={model.id}>
+                  {model.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button className="w-full mt-4" onClick={() => {}}>
+            <PlusIcon className="h-5 w-5 mr-2" />
+            New Chat
+          </Button>
+        </div>
+
+        <ScrollArea className="flex-1 p-4">
+          {/* Conversation history will go here */}
+        </ScrollArea>
       </div>
-
-      <div className="p-4">
-        <Select value={selectedModel} onValueChange={onModelSelect}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a model" />
-          </SelectTrigger>
-          <SelectContent>
-            {models.map((model) => (
-              <SelectItem key={model.id} value={model.id}>
-                {model.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Button className="w-full mt-4" onClick={() => {}}>
-          <PlusIcon className="h-5 w-5 mr-2" />
-          New Chat
-        </Button>
-      </div>
-
-      <ScrollArea className="flex-1 p-4">
-        {/* Conversation history will go here */}
-      </ScrollArea>
-    </div>
+    </>
   );
 }
